@@ -6,6 +6,7 @@
       cover
     >
       <div class="d-flex justify-end pa-2 bg-gradient-bottom">
+        <v-btn icon="mdi-plus" size="small" color="primary" class="mr-2" @click="$emit('add-package', tour)"></v-btn>
         <v-btn icon="mdi-pencil" size="small" color="white" class="mr-2" @click="$emit('edit', tour)"></v-btn>
         <v-btn icon="mdi-delete" size="small" color="error" @click="$emit('delete', tour)"></v-btn>
       </div>
@@ -58,6 +59,7 @@ const imageUrl = props.imageUrl || 'https://images.unsplash.com/photo-1476514525
 defineEmits<{
   (e: 'edit', tour: TourList): void;
   (e: 'delete', tour: TourList): void;
+  (e: 'add-package', tour: TourList): void;
 }>();
 </script>
 

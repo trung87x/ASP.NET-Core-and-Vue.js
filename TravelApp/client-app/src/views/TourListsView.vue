@@ -21,11 +21,12 @@
           :tour="list" 
           @edit="openEditDialog" 
           @delete="confirmDelete"
+          @add-package="openAddPackageDialog"
         />
       </v-col>
     </v-row>
 
-    <!-- Create/Edit Dialog -->
+    <!-- Create/Edit Destination Dialog -->
     <v-dialog v-model="dialog" max-width="500px">
       <v-card rounded="xl" class="pa-4">
         <v-card-title>
@@ -67,6 +68,44 @@
       </v-card>
     </v-dialog>
 
+    <!-- Add Package Dialog -->
+    <v-dialog v-model="dialogPackage" max-width="500px">
+      <v-card rounded="xl" class="pa-4">
+        <v-card-title>
+          <span class="text-h5">Add Package to {{ currentTour?.city }}</span>
+        </v-card-title>
+        <v-card-text>
+          <v-form v-model="validPackage">
+            <v-text-field
+              v-model="newPackage.name"
+              label="Package Name"
+              :rules="[v => !!v || 'Name is required']"
+              required
+              variant="outlined"
+              class="mb-2"
+            ></v-text-field>
+            <v-text-field
+              v-model.number="newPackage.price"
+              label="Price"
+              type="number"
+              prefix="$"
+              :rules="[v => v > 0 || 'Price must be positive']"
+              required
+              variant="outlined"
+              class="mb-2"
+            ></v-text-field>
+          </v-form>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn variant="text" @click="dialogPackage = false">Cancel</v-btn>
+          <v-btn color="primary" variant="elevated" :loading="isSubmitting" :disabled="!validPackage" @click="savePackage">
+            Add
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <!-- Delete Confirmation Dialog -->
     <v-dialog v-model="dialogDelete" max-width="400px">
       <v-card rounded="xl" class="pa-4">
@@ -86,7 +125,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, reactive } from 'vue';
 import { useStore } from 'vuex';
-import { TourList } from '../types';
+import type { TourList } from '../types';
 import TourCard from '../components/TourCard.vue';
 
 const store = useStore();
@@ -95,10 +134,14 @@ const isLoading = computed(() => store.getters.isLoading);
 const error = computed(() => store.state.error);
 
 const dialog = ref(false);
+const dialogPackage = ref(false);
 const dialogDelete = ref(false);
 const valid = ref(false);
+const validPackage = ref(false);
 const isEdit = ref(false);
 const isSubmitting = ref(false);
+
+const currentTour = ref<TourList | null>(null);
 
 const defaultItem = {
   id: 0,
@@ -109,6 +152,11 @@ const defaultItem = {
 };
 
 const editedItem = reactive({ ...defaultItem });
+const newPackage = reactive({
+  name: '',
+  price: 0,
+  listId: 0
+});
 
 onMounted(() => {
   store.dispatch('fetchTourLists');
@@ -124,6 +172,14 @@ const openEditDialog = (item: TourList) => {
   isEdit.value = true;
   Object.assign(editedItem, item);
   dialog.value = true;
+};
+
+const openAddPackageDialog = (item: TourList) => {
+  currentTour.value = item;
+  newPackage.listId = item.id;
+  newPackage.name = '';
+  newPackage.price = 0;
+  dialogPackage.value = true;
 };
 
 const confirmDelete = (item: TourList) => {
@@ -159,6 +215,18 @@ const save = async () => {
   }
 };
 
+const savePackage = async () => {
+  isSubmitting.value = true;
+  try {
+    await store.dispatch('createTourPackage', newPackage);
+    dialogPackage.value = false;
+  } catch (err) {
+    console.error(err);
+  } finally {
+    isSubmitting.value = false;
+  }
+};
+
 const deleteItemConfirm = async () => {
   isSubmitting.value = true;
   try {
@@ -171,13 +239,3 @@ const deleteItemConfirm = async () => {
   }
 };
 </script>
-
-<style scoped>
-.hover-card {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-.hover-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 20px rgba(0,0,0,0.2) !important;
-}
-</style>

@@ -52,7 +52,11 @@ namespace TravelApp.Application.TourLists.Commands.CreateTourList
 
             await _context.SaveChangesAsync(cancellationToken);
 
-            await _cache.RemoveAsync("TravelApp:TourLists:GetAll", cancellationToken);
+            try
+            {
+                await _cache.RemoveAsync("TravelApp:TourLists:GetAll", cancellationToken);
+            }
+            catch { /* Ignore if Redis is down */ }
 
             return entity.Id;
         }

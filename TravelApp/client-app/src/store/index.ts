@@ -1,6 +1,6 @@
 import { createStore } from 'vuex';
 import api from '../api/api';
-import { TourList } from '../types';
+import type { TourList } from '../types';
 
 export default createStore({
   state: {
@@ -59,6 +59,16 @@ export default createStore({
       } catch (err: unknown) {
         const error = err as any;
         commit('SET_ERROR', error.response?.data?.error || 'Failed to delete tour list');
+        throw err;
+      }
+    },
+    async createTourPackage({ commit, dispatch }, pkg: any) {
+      try {
+        await api.post('/TourPackages', pkg);
+        await dispatch('fetchTourLists');
+      } catch (err: unknown) {
+        const error = err as any;
+        commit('SET_ERROR', error.response?.data?.error || 'Failed to create tour package');
         throw err;
       }
     }

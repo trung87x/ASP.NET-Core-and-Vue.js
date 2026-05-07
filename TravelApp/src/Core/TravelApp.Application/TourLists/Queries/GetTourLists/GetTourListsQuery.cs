@@ -58,23 +58,40 @@ namespace TravelApp.Application.TourLists.Queries.GetTourLists
         public async Task<List<TourListDto>> Handle(GetTourListsQuery request, CancellationToken cancellationToken)
         {
             string cacheKey = "TravelApp:TourLists:GetAll";
-            var cachedData = await _cache.GetStringAsync(cacheKey, cancellationToken);
+            List<TourListDto>? lists = null;
 
-            if (!string.IsNullOrEmpty(cachedData))
+            try
             {
-                return JsonSerializer.Deserialize<List<TourListDto>>(cachedData)!;
+                var cachedData = await _cache.GetStringAsync(cacheKey, cancellationToken);
+                if (!string.IsNullOrEmpty(cachedData))
+                {
+                    lists = JsonSerializer.Deserialize<List<TourListDto>>(cachedData);
+                }
+            }
+            catch
+            {
+                // Fallback to database if Redis is unavailable
             }
 
-            var lists = await _context.TourLists
-                .ProjectTo<TourListDto>(_mapper.ConfigurationProvider)
-                .ToListAsync(cancellationToken);
-
-            var cacheOptions = new DistributedCacheEntryOptions
+            if (lists == null)
             {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
-            };
+                lists = await _context.TourLists
+                    .ProjectTo<TourListDto>(_mapper.ConfigurationProvider)
+                    .ToListAsync(cancellationToken);
 
-            await _cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(lists), cacheOptions, cancellationToken);
+                try
+                {
+                    var cacheOptions = new DistributedCacheEntryOptions
+                    {
+                        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+                    };
+                    await _cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(lists), cacheOptions, cancellationToken);
+                }
+                catch
+                {
+                    // Ignore cache errors
+                }
+            }
 
             return lists;
         }

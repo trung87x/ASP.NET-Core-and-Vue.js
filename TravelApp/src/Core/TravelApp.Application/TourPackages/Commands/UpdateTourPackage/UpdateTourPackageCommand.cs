@@ -4,6 +4,7 @@ using MediatR;
 using TravelApp.Application.Common.Exceptions;
 using TravelApp.Application.Common.Interfaces;
 using TravelApp.Domain.Entities;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace TravelApp.Application.TourPackages.Commands.UpdateTourPackage
 {
@@ -17,10 +18,12 @@ namespace TravelApp.Application.TourPackages.Commands.UpdateTourPackage
     public class UpdateTourPackageCommandHandler : IRequestHandler<UpdateTourPackageCommand>
     {
         private readonly IApplicationDbContext _context;
+        private readonly IDistributedCache _cache;
 
-        public UpdateTourPackageCommandHandler(IApplicationDbContext context)
+        public UpdateTourPackageCommandHandler(IApplicationDbContext context, IDistributedCache cache)
         {
             _context = context;
+            _cache = cache;
         }
 
         public async Task Handle(UpdateTourPackageCommand request, CancellationToken cancellationToken)
@@ -36,6 +39,12 @@ namespace TravelApp.Application.TourPackages.Commands.UpdateTourPackage
             entity.Price = request.Price;
 
             await _context.SaveChangesAsync(cancellationToken);
+ 
+            try
+            {
+                await _cache.RemoveAsync("TravelApp:TourLists:GetAll", cancellationToken);
+            }
+            catch { }
         }
     }
 }
