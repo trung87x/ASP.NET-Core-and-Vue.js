@@ -1,0 +1,40 @@
+TÀI LIỆU THAM KHẢO DỰ ÁN TRAVEL APP
+
+--- BACKEND ---
+[.NET Documentation]
+https://docs.microsoft.com/en-us/dotnet/
+
+[Entity Framework Core]
+https://docs.microsoft.com/en-us/ef/core/
+
+[MediatR Documentation]
+https://github.com/jbogard/MediatR/wiki
+
+[Serilog - Structured Logging]
+https://serilog.net/
+
+[Redis Documentation]
+https://redis.io/documentation
+
+--- FRONTEND ---
+[Vue.js 3 Guide]
+https://v3.vuejs.org/guide/introduction.html
+
+[Vuetify Component Library]
+https://vuetifyjs.com/en/introduction/why-vuetify/
+
+[Vue Router]
+https://next.router.vuejs.org/
+
+[Vuex State Management]
+https://next.vuex.vuejs.org/
+
+[Vuelidate - Validation]
+https://vuelidate.js.org/
+
+--- DEVOPS ---
+[GitHub Actions]
+https://docs.github.com/en/actions
+
+[Azure Web Apps]
+https://docs.microsoft.com/en-us/azure/app-service/

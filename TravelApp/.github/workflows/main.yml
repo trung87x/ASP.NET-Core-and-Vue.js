@@ -1,0 +1,52 @@
+name: TravelApp CI/CD
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # Backend Build and Test
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+        
+    - name: Restore dependencies (Backend)
+      run: dotnet restore src/TravelApp.slnx
+      
+    - name: Build (Backend)
+      run: dotnet build src/TravelApp.slnx --no-restore -c Release
+      
+    # Frontend Build
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+        cache-dependency-path: client-app/package-lock.json
+
+    - name: Install dependencies (Frontend)
+      run: |
+        cd client-app
+        npm ci
+
+    - name: Build (Frontend)
+      run: |
+        cd client-app
+        npm run build
+
+    # Deployment (Sample - to be configured with Azure secrets)
+    # - name: Deploy to Azure Web App
+    #   uses: azure/webapps-deploy@v2
+    #   with:
+    #     app-name: 'travel-app-prod'
+    #     publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+    #     package: src/Presentation/TravelApp.WebApi/bin/Release/net10.0/publish
