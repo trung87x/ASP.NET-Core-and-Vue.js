@@ -5,8 +5,11 @@ using TravelApp.Application.TourPackages.Commands.UpdateTourPackage;
 using TravelApp.Application.TourPackages.Commands.DeleteTourPackage;
 using TravelApp.WebApi.Controllers;
 
+using Microsoft.AspNetCore.Authorization;
+
 namespace TravelApp.Presentation.WebApi.Controllers
 {
+    [Authorize]
     public class TourPackagesController : ApiController
     {
         [HttpPost]

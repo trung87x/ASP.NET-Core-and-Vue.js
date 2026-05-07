@@ -7,6 +7,8 @@ export default createStore({
     tourLists: [] as TourList[],
     loading: false,
     error: null as string | null,
+    token: localStorage.getItem('token') || '',
+    user: JSON.parse(localStorage.getItem('user') || 'null'),
   },
   mutations: {
     SET_TOUR_LISTS(state, lists: TourList[]) {
@@ -18,6 +20,18 @@ export default createStore({
     SET_ERROR(state, error: string | null) {
       state.error = error;
     },
+    SET_AUTH(state, { token, user }) {
+      state.token = token;
+      state.user = user;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+    },
+    LOGOUT(state) {
+      state.token = '';
+      state.user = null;
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
   },
   actions: {
     async fetchTourLists({ commit }) {
@@ -31,6 +45,20 @@ export default createStore({
       } finally {
         commit('SET_LOADING', false);
       }
+    },
+    async login({ commit }, credentials) {
+      try {
+        const response = await api.post('/Account/login', credentials);
+        commit('SET_AUTH', { token: response.data.token, user: { email: response.data.email } });
+        return response.data;
+      } catch (err: unknown) {
+        const error = err as any;
+        commit('SET_ERROR', error.response?.data?.message || 'Login failed');
+        throw err;
+      }
+    },
+    logout({ commit }) {
+      commit('LOGOUT');
     },
     async createTourList({ commit, dispatch }, list: TourList) {
       try {
@@ -71,10 +99,31 @@ export default createStore({
         commit('SET_ERROR', error.response?.data?.error || 'Failed to create tour package');
         throw err;
       }
+    },
+    async updateTourPackage({ commit, dispatch }, pkg: any) {
+      try {
+        await api.put(`/TourPackages/${pkg.id}`, pkg);
+        await dispatch('fetchTourLists');
+      } catch (err: unknown) {
+        const error = err as any;
+        commit('SET_ERROR', error.response?.data?.error || 'Failed to update tour package');
+        throw err;
+      }
+    },
+    async deleteTourPackage({ commit, dispatch }, id: number) {
+      try {
+        await api.delete(`/TourPackages/${id}`);
+        await dispatch('fetchTourLists');
+      } catch (err: unknown) {
+        const error = err as any;
+        commit('SET_ERROR', error.response?.data?.error || 'Failed to delete tour package');
+        throw err;
+      }
     }
   },
   getters: {
     allTourLists: (state) => state.tourLists,
     isLoading: (state) => state.loading,
+    isAuthenticated: (state) => !!state.token,
   },
 });

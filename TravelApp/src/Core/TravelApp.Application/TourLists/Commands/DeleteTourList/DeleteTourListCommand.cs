@@ -41,7 +41,11 @@ namespace TravelApp.Application.TourLists.Commands.DeleteTourList
 
             await _context.SaveChangesAsync(cancellationToken);
 
-            await _cache.RemoveAsync("TravelApp:TourLists:GetAll", cancellationToken);
+            try
+            {
+                await _cache.RemoveAsync("TravelApp:TourLists:GetAll", cancellationToken);
+            }
+            catch { }
         }
     }
 }

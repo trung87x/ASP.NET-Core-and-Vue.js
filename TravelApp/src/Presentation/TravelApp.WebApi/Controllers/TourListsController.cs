@@ -6,11 +6,15 @@ using TravelApp.Application.TourLists.Commands.UpdateTourList;
 using TravelApp.Application.TourLists.Commands.DeleteTourList;
 using TravelApp.Application.TourLists.Queries.GetTourLists;
 
+using Microsoft.AspNetCore.Authorization;
+
 namespace TravelApp.WebApi.Controllers
 {
+    [Authorize]
     public class TourListsController : ApiController
     {
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<List<TourListDto>>> Get()
         {
             return await Mediator.Send(new GetTourListsQuery());

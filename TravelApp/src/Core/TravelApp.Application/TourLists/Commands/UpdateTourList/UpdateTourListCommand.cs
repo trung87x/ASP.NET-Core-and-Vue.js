@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using FluentValidation;
 using TravelApp.Application.Common.Exceptions;
 using TravelApp.Application.Common.Interfaces;
 using TravelApp.Domain.Entities;
@@ -13,6 +14,16 @@ namespace TravelApp.Application.TourLists.Commands.UpdateTourList
         public int Id { get; set; }
         public string? City { get; set; }
         public string? About { get; set; }
+    }
+
+    public class UpdateTourListCommandValidator : FluentValidation.AbstractValidator<UpdateTourListCommand>
+    {
+        public UpdateTourListCommandValidator()
+        {
+            RuleFor(v => v.City)
+                .MaximumLength(200)
+                .NotEmpty().WithMessage("City is required.");
+        }
     }
 
     public class UpdateTourListCommandHandler : IRequestHandler<UpdateTourListCommand>
@@ -40,7 +51,11 @@ namespace TravelApp.Application.TourLists.Commands.UpdateTourList
 
             await _context.SaveChangesAsync(cancellationToken);
 
-            await _cache.RemoveAsync("TravelApp:TourLists:GetAll", cancellationToken);
+            try
+            {
+                await _cache.RemoveAsync("TravelApp:TourLists:GetAll", cancellationToken);
+            }
+            catch { }
         }
     }
 }

@@ -7,6 +7,10 @@
             <div class="text-h4 font-weight-bold mb-2">Welcome Back</div>
             <div class="text-body-1 text-medium-emphasis">Please login to your account</div>
           </v-card-title>
+
+          <v-alert v-if="error" type="error" variant="tonal" class="mb-4" closable>
+            {{ error }}
+          </v-alert>
           
           <v-form v-model="valid" @submit.prevent="handleLogin">
             <v-text-field
@@ -59,8 +63,11 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useStore } from 'vuex';
 
+const store = useStore();
 const router = useRouter();
+const error = ref('');
 const valid = ref(false);
 const email = ref('');
 const password = ref('');
@@ -70,11 +77,19 @@ const loading = ref(false);
 const handleLogin = async () => {
   if (!valid.value) return;
   
-  loading.ref = true;
-  // Rule 16: Authentication logic would go here
-  setTimeout(() => {
-    loading.value = false;
+  loading.value = true;
+  error.value = '';
+  
+  try {
+    await store.dispatch('login', {
+      email: email.value,
+      password: password.value
+    });
     router.push('/');
-  }, 1000);
+  } catch (err: any) {
+    error.value = err.response?.data?.message || 'Login failed. Please check your credentials.';
+  } finally {
+    loading.value = false;
+  }
 };
 </script>

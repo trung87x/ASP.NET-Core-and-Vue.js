@@ -5,7 +5,7 @@
       height="200"
       cover
     >
-      <div class="d-flex justify-end pa-2 bg-gradient-bottom">
+      <div v-if="isAuthenticated" class="d-flex justify-end pa-2 bg-gradient-bottom">
         <v-btn icon="mdi-plus" size="small" color="primary" class="mr-2" @click="$emit('add-package', tour)"></v-btn>
         <v-btn icon="mdi-pencil" size="small" color="white" class="mr-2" @click="$emit('edit', tour)"></v-btn>
         <v-btn icon="mdi-delete" size="small" color="error" @click="$emit('delete', tour)"></v-btn>
@@ -34,7 +34,13 @@
           </template>
           <v-list-item-title class="text-body-2">{{ pkg.name }}</v-list-item-title>
           <template v-slot:append>
-            <span class="text-success font-weight-bold text-body-2">${{ pkg.price }}</span>
+            <div class="d-flex align-center">
+              <span class="text-subtitle-2 font-weight-bold text-success mr-2">${{ pkg.price }}</span>
+              <template v-if="isAuthenticated">
+                <v-btn icon="mdi-pencil" size="x-small" variant="text" color="grey" @click="$emit('edit-package', pkg)"></v-btn>
+                <v-btn icon="mdi-delete" size="x-small" variant="text" color="error" @click="$emit('delete-package', pkg)"></v-btn>
+              </template>
+            </div>
           </template>
         </v-list-item>
       </v-list>
@@ -43,7 +49,8 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits } from 'vue';
+import { computed } from 'vue';
+import { useStore } from 'vuex';
 import type { TourList } from '../types';
 
 // Rule 11: Props must be defined with types
@@ -51,6 +58,9 @@ const props = defineProps<{
   tour: TourList;
   imageUrl?: string;
 }>();
+
+const store = useStore();
+const isAuthenticated = computed(() => store.getters.isAuthenticated);
 
 // Default values for optional props
 const imageUrl = props.imageUrl || 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=800&q=80';
@@ -60,6 +70,8 @@ defineEmits<{
   (e: 'edit', tour: TourList): void;
   (e: 'delete', tour: TourList): void;
   (e: 'add-package', tour: TourList): void;
+  (e: 'edit-package', pkg: any): void;
+  (e: 'delete-package', pkg: any): void;
 }>();
 </script>
 

@@ -6,6 +6,8 @@ using TravelApp.Domain.Entities;
 using TravelApp.Domain.Enums;
 using Microsoft.Extensions.Caching.Distributed;
 
+using FluentValidation;
+
 namespace TravelApp.Application.TourPackages.Commands.CreateTourPackage
 {
     public class CreateTourPackageCommand : IRequest<int>
@@ -18,6 +20,22 @@ namespace TravelApp.Application.TourPackages.Commands.CreateTourPackage
         public Currency Currency { get; set; }
         public int Duration { get; set; }
         public bool InstantConfirmation { get; set; }
+    }
+
+    public class CreateTourPackageCommandValidator : AbstractValidator<CreateTourPackageCommand>
+    {
+        public CreateTourPackageCommandValidator()
+        {
+            RuleFor(v => v.Name)
+                .MaximumLength(200)
+                .NotEmpty().WithMessage("Name is required.");
+
+            RuleFor(v => v.Price)
+                .GreaterThan(0).WithMessage("Price must be greater than zero.");
+
+            RuleFor(v => v.ListId)
+                .NotEmpty().WithMessage("ListId is required.");
+        }
     }
 
     public class CreateTourPackageCommandHandler : IRequestHandler<CreateTourPackageCommand, int>
